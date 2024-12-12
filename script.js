@@ -17,27 +17,8 @@ infoBox.id = 'info-box';
 infoBox.innerHTML = `
   <h3>Параметры</h3>
   <p>Кликните на карту, чтобы выбрать координаты.</p>
-  <label>Дата начала: <input type="date" id="start-date" value="${new Date().toISOString().split('T')[0]}"></label><br>
-  <label>Дата начала: <input type="date" id="start-date" value="${new Date().toISOString().split('T')[0]}"></label><br>
-      <label>Вид местности:
-        <select id="land-type">
-          <option value="0">Городские территории</option>
-      <option value="1">Вечнозелёные широколиственные леса</option>
-      <option value="2">Листопадные хвойные леса</option>
-      <option value="3">Листопадные хвойные леса</option>
-      <option value="4">Листопадные широколиственные леса</option>
-      <option value="5">Смешанные леса</option>
-      <option value="6">Саванны</option>
-      <option value="7">Болотные территории</option>
-      <option value="8">Кустарниковые территории</option>
-      <option value="9">Пустыни</option>
-      <option value="10">Сельскохозяйственные земли</option>
-      <option value="11">Вечнозелёные хвойные леса</option>
-        </select>
-      </label><br>
-      <label>Направление ветра (°): <input type="number" id="wind-direction" value="3" min="0" max="360"></label><br>
-      <label>Скорость ветра (км/ч): <input type="number" id="wind-speed" value="78" min="0"></label><br>
-      <label>Влажность (%): <input type="number" id="humidity" value="20" min="0" max="100"></label>
+  <p>Сохраните данные.</p>
+  <p>Запустите моделирование.</p>
 `;
 document.body.appendChild(infoBox);
 
@@ -80,7 +61,7 @@ styleInfoBox.innerHTML = `
 document.head.appendChild(styleInfoBox);
 
 // Функция для создания нового очага пожара
-function createFire(lat, lng, color, fillColor, radius = 10) {
+function createFire(lat, lng, color, fillColor, radius = 7) {
     var bounds = map.getBounds();
     if (!bounds.contains([lat, lng])) return;
 
@@ -112,42 +93,57 @@ function stopFireSpread() {
 }
 
 // Распространение пожара
-function spreadFire(centerLat, centerLng, maxRadius, delay, steps, centerOffset) {
+// Распространение пожара
+function spreadFire(centerLat, centerLng, maxRadius, delay, steps, centerOffset, angle) {
     var step = 0;
 
     function addFire() {
         if (step >= steps) return;
 
-        var angle = Math.random() * Math.PI * 2;
+        // Расстояние от центра для распространения
         var radius = Math.random() * maxRadius;
 
+        // Если шаг не первый и чётный, меняем положение центра на основе угла и смещения
         if (step % 2 === 0 && step !== 0) {
-            centerLat -= centerOffset.lng;
-            centerLng += centerOffset.lng;
+            centerLat += Math.cos(angle * Math.PI / 180) * centerOffset.lat;
+            centerLng += Math.sin(angle * Math.PI / 180) * centerOffset.lng;
         }
 
-        var newLat = centerLat + (radius * (step / 10 + 1.5) / 111000) * Math.cos(angle);
-        var newLng = centerLng + (radius / (111000 * Math.cos(centerLat * (Math.PI / 180)))) * Math.sin(angle);
+        // Добавляем случайное отклонение угла (например, от -15 до +15 градусов)
+        var angleVariation = (Math.random() * 30 - 15);  // Отклонение в пределах -15 до +15 градусов
+        var adjustedAngle = angle + angleVariation; // Новый угол с учётом отклонения
 
-        var color = (step % 10 === 0) ? 'orange' : 'red';
+        // Формулы для вычисления новых координат с учётом случайного отклонения
+        var newLat = centerLat + (radius  / 111000) * Math.cos(adjustedAngle * Math.PI / 180);
+        var newLng = centerLng + (radius / (111000 * Math.cos(centerLat * (Math.PI / 180)))) * Math.sin(adjustedAngle * Math.PI / 180);
+
+        // Определяем цвет для точек
+        var color = (step % 3 === 0) ? 'orange' : 'red';
         var fillColor = color;
 
+        // Создаём новый огонь на новых координатах
         createFire(newLat, newLng, color, fillColor);
 
+        // Переходим к следующему шагу
         step++;
+
+        // Запускаем следующий шаг с задержкой
         var timerId = setTimeout(addFire, delay);
         fireTimers.push(timerId);
     }
 
+    // Инициализация распространения огня
     addFire();
 }
+
+
 
 // Кнопка "Запустить пожар"
 var startButton = document.createElement('button');
 startButton.innerHTML = 'Запустить пожар';
 startButton.style.position = 'absolute';
 startButton.style.bottom = '10%';
-startButton.style.left = '47%';
+startButton.style.left = '45%';
 startButton.style.transform = 'translateX(-50%)';
 startButton.style.padding = '12px 18px';
 startButton.style.background = 'linear-gradient(135deg, #32cd32, #228b22)';
@@ -191,50 +187,124 @@ clearButton.onclick = function () {
     startButton.disabled = true;
 };
 document.body.appendChild(clearButton);
+let currentLat, currentLng;
 
-// Обработчик клика на карте
 map.on('click', function (e) {
-    var lat = e.latlng.lat;
-    var lng = e.latlng.lng;
+    currentLat = e.latlng.lat;
+    currentLng = e.latlng.lng;
 
     clearOldFireCircles();
 
     infoBox.innerHTML = `
       <h3>Параметры</h3>
-      <p><b>Широта:</b> ${lat.toFixed(6)}</p>
-      <p><b>Долгота:</b> ${lng.toFixed(6)}</p>
+      <p><b>Широта:</b> ${currentLat.toFixed(6)}</p>
+      <p><b>Долгота:</b> ${currentLng.toFixed(6)}</p>
       <label>Дата начала: <input type="date" id="start-date" value="${new Date().toISOString().split('T')[0]}"></label><br>
       <label>Вид местности:
         <select id="land-type">
-          <option value="0">Городские территории</option>
-      <option value="1">Вечнозелёные широколиственные леса</option>
-      <option value="2">Листопадные хвойные леса</option>
-      <option value="3">Листопадные хвойные леса</option>
-      <option value="4">Листопадные широколиственные леса</option>
-      <option value="5">Смешанные леса</option>
-      <option value="6">Саванны</option>
-      <option value="7">Болотные территории</option>
-      <option value="8">Кустарниковые территории</option>
-      <option value="9">Пустыни</option>
-      <option value="10">Сельскохозяйственные земли</option>
-      <option value="11">Вечнозелёные хвойные леса</option>
+          <option value="1">Городские территории</option>
+          <option value="2">Вечнозелёные широколиственные леса</option>
+          <option value="3">Листопадные хвойные леса</option>
+          <option value="4">Листопадные хвойные леса</option>
+          <option value="5">Листопадные широколиственные леса</option>
+          <option value="6">Смешанные леса</option>
+          <option value="7">Саванны</option>
+          <option value="8">Болотные территории</option>
+          <option value="9">Кустарниковые территории</option>
+          <option value="10">Пустыни</option>
+          <option value="11">Сельскохозяйственные земли</option>
+          <option value="12">Вечнозелёные хвойные леса</option>
         </select>
       </label><br>
-      <label>Направление ветра (°): <input type="number" id="wind-direction" value="3" min="0" max="360"></label><br>
-      <label>Скорость ветра (км/ч): <input type="number" id="wind-speed" value="78" min="0"></label><br>
-      <label>Влажность (%): <input type="number" id="humidity" value="20" min="0" max="100"></label>
+      <label for="direction">Направление ветра (градусы):</label>
+      <input type="number" id="wind-direction" min="0" max="360" value="0">
+      <label>Скорость ветра (км/ч): <input type="number" id="wind-speed" value="0" min="0"></label><br>
+      <label>Влажность (%): <input type="number" id="humidity" value="0" min="0" max="100"></label>
+      <button id="save-button">Сохранить данные</button>
     `;
-    startButton.disabled = false;
 
-    startButton.onclick = function () {
-        if (!Run) {
-            Run = true;
-            var centerOffset = { lat: 0.0002, lng: 0.0002 };
-            spreadFire(lat, lng, 50, 100, 100, centerOffset);
-            infoBox.innerHTML += `<p>Пожар запущен.</p>`;
-        }
+    document.getElementById("save-button").onclick = function() {
+        const directionInput = document.getElementById("wind-direction");
+        const WinSpeedInput = document.getElementById("wind-speed");
+        const HumidityInput = document.getElementById("humidity");
+        const lancover = document.getElementById("land-type");
+        const fireDirection = parseInt(directionInput.value, 10);
+        const lat = currentLat;
+        const lng = currentLng;
+
+        const currentDate = document.getElementById("start-date").value;  // Получаем значение из input
+        const dateObject = new Date(currentDate); // Преобразуем в объект Date
+
+        // Получаем день и месяц из объекта Date
+        const dayOfMonth = dateObject.getDate(); // День месяца (1-31)
+        const monthOfYear = dateObject.getMonth() + 1; // Месяц (1-12)
+
+        // Высчитываем синус дня месяца и месяца (переводим в радианы)
+        const day_sin = Math.sin((2 * Math.PI * (dayOfMonth - 1)) / 31);  // Синус дня месяца
+        const month_sin = Math.sin((2 * Math.PI * (monthOfYear - 1)) / 12);  // Синус месяца
+
+        const data = {
+            lat: lat,
+            lon: lng,
+            avg_wdir: fireDirection,
+            avg_wspd: WinSpeedInput.value,
+            avg_hum: HumidityInput.value,
+            landcover: lancover.value,
+            day_sin: day_sin,
+            month_sin: month_sin
+        };
+
+        // Преобразуем объект в строку JSON
+        const jsonData = JSON.stringify(data);
+        let output_direction, output_speed, output_duration, output_expansion;
+        // Отправляем данные на сервер с использованием fetch
+        fetch('http://localhost:5000/process_fire_data', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: jsonData
+        })
+        .then(response => response.json())  // Преобразуем ответ в JSON
+        .then(data => {
+        output_direction = data.direction;
+        output_speed = data.speed;
+        output_duration = data.duration;
+        output_expansion = data.expansion;// Извлекаем нужное значение
+        console.log('output_direction:', data.direction);
+        console.log('Response from server:', data)
+        infoBox.innerHTML += `<p>Направление огня: ${output_direction}°</p>`;
+        infoBox.innerHTML += `<p>Скорость огня: ${output_speed} км/час</p>`;
+        infoBox.innerHTML += `<p>Интенсивность огня: ${output_expansion} км²/сутки</p>`;
+        infoBox.innerHTML += `<p>Продолжительность огня: ${output_duration} суток</p>`;
+        })
+
+
+        .catch(error => console.error('Error sending data:', error));
+
+
+
+        // Выводим значение на страницу
+
+
+
+
+
+
+
+        startButton.disabled = false;
+        startButton.onclick = function () {
+            if (!Run) {
+                Run = true;
+                var centerOffset = { lat: 0.0002, lng: 0.0002 };
+                spreadFire(lat, lng, output_duration * 240, 100, output_duration * 100, centerOffset, output_direction);
+                infoBox.innerHTML += `<p>Пожар запущен.</p>`;
+
+            }
+        };
     };
 });
+
 
 
 
@@ -283,6 +353,4 @@ function showPopup(element, text) {
         popup.remove();
     });
 }
-
-
 

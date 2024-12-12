@@ -39,6 +39,7 @@ body {
 
 /* Контейнер для изображения */
 .image-container {
+
   position: relative;
   padding: 20px;
   min-height: 400px;
@@ -49,11 +50,10 @@ body {
 
 /* Скрытые изображения */
 .image-container img {
-  max-width: 80%;
+  max-width: 100%;
   height: auto;
   display: none;
-  border: 5px solid #444;
-  border-radius: 10px;
+
 }
 
 /* Активное изображение */
@@ -98,3 +98,76 @@ body {
   color: #fff;
 }
 /**/
+
+.donermenu {
+    height: 100%;
+    width: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: #111;
+    overflow-x: hidden;
+    transition: 0.5s;
+    padding-top: 100px;
+    z-index: 10;
+}
+
+.donermenu a {
+    padding: 30px 15px;
+    text-decoration: none;
+    font-size: 24px;
+    color: white;
+    display: block;
+    transition: 0.3s;
+    position: relative;
+}
+
+.donermenu a:hover {
+    background-color: #575757;
+}
+
+.close-btn {
+    position: absolute;
+    bottom: 100px;
+    left: 180px;
+    color: white;
+    font-size:50px;
+    text-decoration: none;
+    cursor: pointer;
+    z-index: 15;
+}
+
+
+.open {
+    font-size: 20px;
+    cursor: pointer;
+    background-color: #111;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 5;
+    transition: 0.3s;
+}
+
+.popup {
+    position: absolute;
+    background-color: #000;
+    color: #fff;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 21px;
+    white-space: normal;
+    word-wrap: break-word;
+    z-index: 20;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    max-width: 250px;
+}
+
+
+
+.popup.hidden {
+    display: none;
+}

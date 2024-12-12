@@ -1,33 +1,60 @@
 <!DOCTYPE html>
-<html lang="ru">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Интерактивная карта</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css">
-    <link rel="stylesheet" href="styles.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Landscapes Selector</title>
+  <link rel="stylesheet" href="Second_pg_styles.css">
 </head>
 <body>
-    <div class="header">
-        <button class="menu-button">☰</button>
-        <input type="text" class="search-bar" placeholder="Поиск">
-    </div>
-    <div class="map-container">
-        <div id="map"></div>
 
-    </div>
-
-
-    <div id="donermenu" class="donermenu">
+<div id="donermenu" class="donermenu">
         <a href="#" class="close-btn" onclick="closeMenu()">×</a>
         <a href="#" onclick="showPopup(this,'В этом разделе пользователи могут детально спроектировать сценарий распространения пожара, используя различные параметры и настройки, чтобы смоделировать поведение огня в разных условиях.')">Проектирование пожара</a>
-        <a href="#" onclick="showPopup(this, 'Раздел предлагает готовые шаблоны для моделирования пожаров в различных ситуациях. Пользователи могут выбрать шаблон, который соответствует их потребностям, и настроить его под свои условия.')">Проектирование пожара по шаблонам</a>
+        <a href="#" onclick="window.location.href='https://sulta24.github.io/SecondPAge_ES/'" target="_blank">Проектирование пожара по шаблонам</a>
         <a href="#" onclick="showPopup(this, 'Содержит все необходимые инструменты, данные и материалы для работы с моделями пожара. Включает документацию, обучающие материалы, а также ссылки на внешние источники.')">Ресурсы</a>
         <a href="#" onclick="showPopup(this, 'Этот раздел предоставляет информацию о целях и задачах проекта, его разработчиках и технологиях, использованных для создания платформы. Также может включать контакты и описание возможностей для сотрудничества.')">О проекте</a>
         <a href="#" onclick="showPopup(this, 'Сотрудничество')">Сотрудничество</a>
     </div>
     <button id="menuButton" class="open" onclick="openMenu()">☰</button>
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script src="script.js"></script>
+
+
+
+  <div class="image-container" id="image-container">
+    <img id="image" src="" alt="Landscape" />
+    <canvas id="fireCanvas" class="fire-canvas"></canvas>
+  </div>
+  <!-- Меню с кнопками -->
+  <div class="buttons">
+    <button onclick="startFireCycle('evergreen_coniferous')">Вечнозелёные хвойные леса</button>
+    <button onclick="startFireCycle('evergreen_broadleaf')">Вечнозелёные широколиственные леса</button>
+    <button onclick="startFireCycle('deciduous_coniferous')">Листопадные хвойные леса</button>
+    <button onclick="startFireCycle('deciduous_broadleaf')">Листопадные широколиственные леса</button>
+    <button onclick="startFireCycle('mixed_forest')">Смешанные леса</button>
+    <button onclick="startFireCycle('meadow')">Луга</button>
+    <button onclick="startFireCycle('savanna')">Саванны</button>
+    <button onclick="startFireCycle('wetland')">Болотные территории</button>
+    <button onclick="startFireCycle('shrubs')">Кустарниковые территории</button>
+    <button onclick="startFireCycle('desert')">Пустыни</button>
+    <button onclick="startFireCycle('agriculture')">Сельскохозяйственные земли</button>
+    <button onclick="startFireCycle('urban')">Городские территории</button>
+  </div>
+
+  <!-- Форма для ввода параметров огня -->
+  <div class="settings-form">
+    <label for="radius">Влажность (%):</label>
+    <input type="number" id="radius" min="10" max="100" value="50">
+
+    <label for="interval">Скорость ветра (км\час):</label>
+    <input type="number" id="interval" min="50" max="1000" value="200">
+
+    <label for="direction">Направление ветра (градусы):</label>
+    <input type="number" id="direction" min="0" max="360" value="90">
+
+    <button onclick="updateFireCycle()">Применить параметры</button>
+  </div>
+
+
+  <script src="Second_pg_script.js"></script>
 </body>
 </html>
